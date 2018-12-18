@@ -1,70 +1,69 @@
 package com.example.jinsiclee.imdroneking;
 
+import android.content.Context;
+import android.content.Intent;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 
 public class MainActivity extends AppCompatActivity {
-    public static final String Drone_IP = "192.168.10.1";
-    public static final int Command_PORT = 8889;
-    public SendData mSendData = null;
-    public TextView txtView = null;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button btnHello = (Button) findViewById(R.id.Hello);
-        txtView = (TextView) findViewById(R.id.textView);
+        ImageButton btnwifi = (ImageButton) findViewById(R.id.connectmode);
+        ImageButton btnfly = (ImageButton) findViewById(R.id.flymode);
+        ImageButton btnsns = (ImageButton) findViewById(R.id.SNSupload);
+        ImageButton btnvideo = (ImageButton) findViewById(R.id.videomode);
 
-        //button click event Listener
-        btnHello.setOnClickListener(new View.OnClickListener() {
+        btnfly.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                //create SendData class
-                mSendData = new SendData();
-                //send data
-                mSendData.start();
+            public void onClick(View view) {
+                WifiManager wifiMgr = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+                WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
+                String name = wifiInfo.getSSID();
+                if(!name.contains("TELLO")) {
+                    Toast.makeText(getApplicationContext(),"tello와 연결안됨",Toast.LENGTH_LONG).show();
+                }
+                else {
+                    startActivity(new Intent(MainActivity.this, FlyActivity.class));
+                }
+
             }
         });
-    }
 
-    class SendData extends Thread{
-        public void run(){
-            try{
-                //create UDP socket
-                DatagramSocket socket = new DatagramSocket();
-                //drone(server) ip
-                InetAddress serverAddr = InetAddress.getByName(Drone_IP);
+        btnwifi.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
+            }
+        });
 
-                //make buffer
-                byte[] buf = ("command").getBytes();
-
-                //transform to packet
-                DatagramPacket packet = new DatagramPacket(buf, buf.length, serverAddr, Command_PORT);
-
-                //send packet
-                socket.send(packet);
-
-                //wait receive data
-                socket.receive(packet);
-
-                //transfer packet to string
-                String msg = new String(packet.getData());
-
-                //write to txtView
-                txtView.setText(msg);
-            }catch (Exception e){
+        btnvideo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
 
             }
-        }
+        });
+
+
     }
+
+
 
 }
